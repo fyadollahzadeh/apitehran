@@ -22,14 +22,16 @@ namespace TransportationApi.Controllers
 
         // GET: api/Transport
         [HttpGet]
-        public async Task<List<MetroStation>> GetAsync()
+        public async Task<int> GetAsync()
         {
-            var location = new Location { X = 535654, Y= 3952855,BufferSize=30000 };
-            var result= CallForNearMetroStation(location);
-            return  result;
+            var location = new Location { X = 535654, Y= 3952855,BufferSize=3000 };
+            var result= CallForTaxiLinePrice("473");
+            return result[0].Amount;
         }
 
-        
+
+        #region LocationBased Apis
+
         private List<MetroLine> CallForNearMetro(Location location)
         {
             ServicePointManager.ServerCertificateValidationCallback +=
@@ -101,6 +103,30 @@ namespace TransportationApi.Controllers
             return result.TaxiTerminal;
         }
 
+        private List<TaxiStation> CallForNearTaxiStation(Location location)
+        {
+            ServicePointManager.ServerCertificateValidationCallback +=
+                    (sender, certificate, chain, sslPolicyErrors) => true;
+            var client = new RestClient("https://31.24.236.154:8082/TM.Services.GIS.Map.ver1/api/GetTrafficTaxiStop");
+            var request = new RestRequest(Method.POST);
+            request.AddHeader("cache-control", "no-cache");
+            request.AddHeader("Connection", "keep-alive");
+            request.AddHeader("Content-Length", "57");
+            request.AddHeader("Accept-Encoding", "gzip, deflate");
+            request.AddHeader("Host", "31.24.236.154:8082");
+            request.AddHeader("Postman-Token", "042d55db-ef80-41b3-99bb-fe23ea82e704,ed3a79f4-792f-4dc1-8e1e-95ead72238de");
+            request.AddHeader("Cache-Control", "no-cache");
+            request.AddHeader("Accept", "*/*");
+            request.AddHeader("User-Agent", "PostmanRuntime/7.20.1");
+            request.AddHeader("Authorization", "Bearer " + bearerToken);
+            request.AddHeader("Content-Type", "application/json");
+            request.AddParameter("undefined", JsonConvert.SerializeObject(location), ParameterType.RequestBody);
+            IRestResponse response = client.Execute(request);
+            var result = JsonConvert.DeserializeObject<TaxiStationRoot>(response.Content);
+            return result.TaxiStation;
+        }
+
+
         private List<MetroStation> CallForNearMetroStation(Location location)
         {
             ServicePointManager.ServerCertificateValidationCallback +=
@@ -124,31 +150,28 @@ namespace TransportationApi.Controllers
             return result.MetroStation;
         }
 
-
-        // GET: api/Transport/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        private List<LineRstList> CallForTaxiLinePrice(string linenumber)
         {
-            return "value";
+            ServicePointManager.ServerCertificateValidationCallback +=
+                    (sender, certificate, chain, sslPolicyErrors) => true;
+            var client = new RestClient("https://31.24.236.154:8095/ESB.Api.Taxi.Ver1/api/getLineAmount/"+linenumber);
+            var request = new RestRequest(Method.GET);
+            request.AddHeader("cache-control", "no-cache");
+            request.AddHeader("Connection", "keep-alive");
+            request.AddHeader("Accept-Encoding", "gzip, deflate");
+            request.AddHeader("Host", "31.24.236.154:8095");
+            request.AddHeader("Postman-Token", "ff3845d5-6d15-477b-a1d5-2d49a7ce2f41,9c5a2421-4358-4c3a-9881-ab607acb02fb");
+            request.AddHeader("Cache-Control", "no-cache");
+            request.AddHeader("Accept", "*/*");
+            request.AddHeader("User-Agent", "PostmanRuntime/7.20.1");
+            request.AddHeader("Authorization", "Bearer " + bearerToken);
+            IRestResponse response = client.Execute(request);
+            var result = JsonConvert.DeserializeObject<TaxiPriceRoot>(response.Content);
+            return result.LineRstList;
         }
 
-        // POST: api/Transport
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-            
-        }
 
-        // PUT: api/Transport/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+        #endregion 
 
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
     }
 }

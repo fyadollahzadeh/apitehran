@@ -22,6 +22,34 @@ namespace TransportationApi
         public string WKT_GEOMETRY { get; set; }
     }
 
+    public class TaxiStation
+    {
+        public int LINECODE { get; set; }
+        public string NAME { get; set; }
+        public string TYPE { get; set; }
+        public string WKT_GEOMETRY { get; set; }
+    }
+
+    public class TaxiStationRoot
+    {
+        public List<object> MessageDetail { get; set; }
+        public List<TaxiStation> TaxiStation { get; set; }
+    }
+
+    public class LineRstList
+    {
+        public int Amount { get; set; }
+        public string Code { get; set; }
+        public string Dest { get; set; }
+        public string Source { get; set; }
+        public int VanAmount { get; set; }
+    }
+
+    public class TaxiPriceRoot
+    {
+        public List<LineRstList> LineRstList { get; set; }
+        public object MessageDetail { get; set; }
+    }
     public class TaxiTerminal
     {
         public int? LINECOUNT { get; set; }
